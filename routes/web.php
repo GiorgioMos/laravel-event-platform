@@ -25,11 +25,11 @@ Route::middleware(['auth'])
         //Siamo nel gruppo quindi:
         // - il percorso "/" diventa "admin/"
         // - il nome della rotta ->name("dashboard") diventa ->name("admin.dashboard")
+
+        // Route::get('/prova', [DashboardController::class, 'index'])->name('prova');  template nuova rotta semplificata
         Route::get('/', function () {
             return view("admin.dashboard");
         })->name('dashboard');
-        // Route::get('/prova', [DashboardController::class, 'index'])->name('prova');  template nuova rotta semplificata
-
     });
 
 require __DIR__ . '/auth.php';
