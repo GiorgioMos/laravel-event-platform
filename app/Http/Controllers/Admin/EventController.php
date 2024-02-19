@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
+use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -16,7 +18,9 @@ class EventController extends Controller
      */
     public function index()
     {
-        //
+        $events = Event::all();
+
+        return view("admin.events.index", compact("events", "tags"));
     }
 
     /**
@@ -26,7 +30,8 @@ class EventController extends Controller
      */
     public function create()
     {
-        //
+        $users = User::all();
+        return view("admin.events.create", compact("users", "tags"));
     }
 
     /**
@@ -37,7 +42,24 @@ class EventController extends Controller
      */
     public function store(StoreEventRequest $request)
     {
-        //
+        $validati = $request->validated();
+        $percorso = Storage::disk("public")->put('/uploads', $request['img']);
+        $validati["img"] = $percorso;
+
+        $newEvent = new Event();
+        //i dati devono essere popolati nel model
+        $newEvent->fill($validati);
+        $newEvent->save();
+
+
+        //Salva i tags in caso di essere presenti nel form
+        if ($request->tags) {
+            $newEvent->tags()->attach($request->tags);
+        }
+
+
+
+        return redirect()->route("admin.events.index");
     }
 
     /**
@@ -48,7 +70,7 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        //
+        return view("admin.events.show", compact("event"));
     }
 
     /**
@@ -59,7 +81,9 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
-        //
+        $users = User::all();
+
+        return view("admin.events.edit", compact("event", "users", "tags"));
     }
 
     /**
@@ -71,7 +95,16 @@ class EventController extends Controller
      */
     public function update(UpdateEventRequest $request, Event $event)
     {
-        //
+        $dati_validati = $request->validated();
+        if ($request->hasFile("img")) {
+
+            if ($event->img) {
+
+                Storage::disk("public")->delete($event->img);
+            }
+            $percorso = Storage::disk("public")->put('/uploads', $request['img']);
+            $dati_validati["img"] = $percorso;
+        }
     }
 
     /**
@@ -82,6 +115,7 @@ class EventController extends Controller
      */
     public function destroy(Event $event)
     {
-        //
+        $event->delete();
+        return redirect()->route("admin.events.index");
     }
 }
